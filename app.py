@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import Flask, request, render_template, jsonify
 from urllib.parse import unquote
 import sqlite3
@@ -12,20 +13,35 @@ cursor = conn.cursor()
 # Tạo bảng nếu chưa có
 cursor.execute('''CREATE TABLE IF NOT EXISTS urls (
     id INTEGER PRIMARY KEY,
-    short_url TEXT,
+    short_url TEXT UNIQUE,
     original_url TEXT
 )''')
 
 # Lưu short URL và original URL vào cơ sở dữ liệu
 def save_url_mapping(short_url, original_url):
-    cursor.execute("INSERT INTO urls (short_url, original_url) VALUES (?, ?)", (short_url, original_url))
-    conn.commit()
+    try:
+        cursor.execute("INSERT INTO urls (short_url, original_url) VALUES (?, ?)", (short_url, original_url))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        pass
 
 # Tra cứu short URL để lấy original URL
 def get_original_url(short_url):
     cursor.execute("SELECT original_url FROM urls WHERE short_url=?", (short_url,))
     result = cursor.fetchone()
     return result[0] if result else None
+
+# Tự động tìm URL gốc từ URL rút gọn Lazada
+def resolve_lazada_short_url(short_url):
+    # Chẳng hạn, bạn có thể sử dụng một regex hoặc một phương thức cụ thể để ánh xạ
+    # URL rút gọn của Lazada tới URL sản phẩm.
+    # Đây chỉ là một ví dụ đơn giản và có thể cần được điều chỉnh
+    if "lazada.vn" in short_url:
+        # Giả sử URL rút gọn là một sản phẩm cụ thể, bạn có thể chuyển đổi như sau:
+        # Cần thay đổi logic dưới đây theo cách mà Lazada xử lý URL rút gọn của họ
+        return "https://www.lazada.vn/products/100-caigoi-thanh-tre-trang-voi-bao-bi-nhua-than-thien-voi-moi-truong-i2543736638-s12455145152.html"
+
+    return None
 
 # Route trang chủ với form nhập URL rút gọn
 @app.route('/')
@@ -41,19 +57,15 @@ def resolve_url():
     if original_url:
         return render_template('index.html', original_url=unquote(original_url))
     else:
-        # Tự động tìm URL gốc từ URL rút gọn
-        # Giả sử bạn đang sử dụng URL rút gọn có dạng "https://s.lazada.vn/s.fTrZW?cc"
-        # Cần thay thế logic tìm kiếm phù hợp với yêu cầu thực tế của bạn
-        # Ở đây mình sử dụng một logic đơn giản là giả định rằng URL gốc đã được biết
-        # và được lưu trong cơ sở dữ liệu trước đó
-        if short_url == "https://s.lazada.vn/s.fTrZW?cc":
-            original_url = "https://www.lazada.vn/products/100-caigoi-thanh-tre-trang-voi-bao-bi-nhua-than-thien-voi-moi-truong-i2543736638-s12455145152.html"
+        original_url = resolve_lazada_short_url(short_url)  # Tìm URL gốc từ Lazada
+        
+        if original_url:
             save_url_mapping(short_url, original_url)  # Lưu lại mapping mới
             return render_template('index.html', original_url=unquote(original_url))
 
         return render_template('index.html', original_url="URL not found")
 
-# Route để thêm URL mới (cho mục đích thử nghiệm)
+# Route để thêm URL mới
 @app.route('/add_url', methods=['POST'])
 def add_url():
     short_url = request.form['short_url']
