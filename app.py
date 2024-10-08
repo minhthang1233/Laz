@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, redirect
 from urllib.parse import unquote
 import sqlite3
 
@@ -27,22 +27,20 @@ def get_original_url(short_url):
     result = cursor.fetchone()
     return result[0] if result else None
 
-# Route để thêm URL mới
-@app.route('/add_url', methods=['POST'])
-def add_url():
-    short_url = request.form['short_url']
-    original_url = request.form['original_url']
-    save_url_mapping(short_url, original_url)
-    return jsonify({"message": "URL mapping saved successfully"}), 201
+# Route trang chủ với form nhập URL rút gọn
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Route để giải mã URL
-@app.route('/resolve/<short_url>', methods=['GET'])
-def resolve_url(short_url):
+# Route để xử lý form nhập URL rút gọn và trả về kết quả
+@app.route('/resolve_url', methods=['POST'])
+def resolve_url():
+    short_url = request.form['short_url']
     original_url = get_original_url(short_url)
     if original_url:
-        return jsonify({"original_url": unquote(original_url)}), 200
+        return render_template('index.html', original_url=unquote(original_url))
     else:
-        return jsonify({"error": "URL not found"}), 404
+        return render_template('index.html', original_url="URL not found")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
