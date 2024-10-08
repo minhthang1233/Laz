@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Shortener</title>
+    <title>URL Resolver</title>
 </head>
 <body>
-    <h1>URL Shortener</h1>
-    <form action="/shorten" method="POST">
-        <label for="url">Enter URL:</label>
-        <input type="text" name="url" id="url" required>
-        <button type="submit">Shorten</button>
+    <h1>Resolve Shortened URL</h1>
+    <form action="/resolve_url" method="POST">
+        <label for="short_url">Enter Shortened URL:</label>
+        <input type="text" name="short_url" id="short_url" required>
+        <button type="submit">Resolve</button>
     </form>
+
+    {% if original_url %}
+    <h2>Original URL:</h2>
+    <p><a href="{{ original_url }}">{{ original_url }}</a></p>
+    {% endif %}
 </body>
 </html>
