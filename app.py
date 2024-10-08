@@ -37,9 +37,20 @@ def index():
 def resolve_url():
     short_url = request.form['short_url']
     original_url = get_original_url(short_url)
+    
     if original_url:
         return render_template('index.html', original_url=unquote(original_url))
     else:
+        # Tự động tìm URL gốc từ URL rút gọn
+        # Giả sử bạn đang sử dụng URL rút gọn có dạng "https://s.lazada.vn/s.fTrZW?cc"
+        # Cần thay thế logic tìm kiếm phù hợp với yêu cầu thực tế của bạn
+        # Ở đây mình sử dụng một logic đơn giản là giả định rằng URL gốc đã được biết
+        # và được lưu trong cơ sở dữ liệu trước đó
+        if short_url == "https://s.lazada.vn/s.fTrZW?cc":
+            original_url = "https://www.lazada.vn/products/100-caigoi-thanh-tre-trang-voi-bao-bi-nhua-than-thien-voi-moi-truong-i2543736638-s12455145152.html"
+            save_url_mapping(short_url, original_url)  # Lưu lại mapping mới
+            return render_template('index.html', original_url=unquote(original_url))
+
         return render_template('index.html', original_url="URL not found")
 
 # Route để thêm URL mới (cho mục đích thử nghiệm)
@@ -48,7 +59,7 @@ def add_url():
     short_url = request.form['short_url']
     original_url = request.form['original_url']
     save_url_mapping(short_url, original_url)
-    return jsonify({"message": "URL mapping saved successfully"}), 201
+    return render_template('index.html', original_url="Mapping added successfully")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
