@@ -26,7 +26,7 @@ def shorten_url():
     short_url = generate_short_url(original_url)
     cursor.execute("INSERT INTO urls (original_url, short_url) VALUES (?, ?)", (original_url, short_url))
     conn.commit()
-    return f"Shortened URL: https://your-app-name.onrender.com/{short_url}"
+    return f"Shortened URL: https://laz-9r98.onrender.com/{short_url}"
 
 # Route để chuyển hướng từ short URL
 @app.route('/<short_url>')
