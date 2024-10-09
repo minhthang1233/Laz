@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kết quả chuyển đổi</title>
+</head>
+<body>
+    <h1>Kết quả chuyển đổi</h1>
+    <div>
+        {{ converted_text|safe }}
+    </div>
+    <br>
+    <h3>Liên kết chia sẻ:</h3>
+    <input type="text" value="{{ share_link }}" readonly>
+    <button onclick="copyToClipboard()">Sao chép liên kết</button>
+    <br><br>
+    <a href="/">Trở lại trang chính</a>
+
+    <script>
+        function copyToClipboard() {
+            const input = document.querySelector('input[type="text"]');
+            input.select();
+            document.execCommand('copy');
+            alert('Đã sao chép liên kết!');
+        }
+    </script>
+</body>
+</html>
