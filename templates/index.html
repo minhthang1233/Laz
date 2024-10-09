@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang proxy Shopee và Lọc Liên Kết</title>
+    <title>Lọc và Thay Thế Liên Kết Theo Tên Miền</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,8 +17,11 @@
         .section-header {
             margin-bottom: 15px;
         }
-        .link-section, .remove-number-section {
+        .link-section {
             background-color: #f0f8ff;
+        }
+        .remove-number-section {
+            background-color: #f5f5dc;
         }
         textarea {
             width: 100%;
@@ -32,21 +35,17 @@
             margin-bottom: 15px;
             border-radius: 5px;
         }
-        .header {
-            background-color: #f8f9fa;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            border-bottom: 2px solid #ddd;
-        }
-        .notification {
-            background-color: #ffeb3b;
-            color: #000;
-            padding: 10px;
-            text-align: center;
-            font-size: 18px;
-            margin-bottom: 20px;
+        /* Màu nền cho các nhóm liên kết */
+        .group-0 { background-color: #d1e7dd; }
+        .group-1 { background-color: #f8d7da; }
+        .group-2 { background-color: #cff4fc; }
+        .group-3 { background-color: #e2e3e5; }
+        .group-4 { background-color: #fefefe; }
+        .replaced-group { background-color: #fefefe !important; }
+        .group-copied { background-color: #f8d7da !important; }
+        .button-container {
+            display: flex;
+            gap: 10px;
         }
         iframe {
             width: 100%;
@@ -56,34 +55,72 @@
     </style>
 </head>
 <body>
-    <div class="header">Lọc Liên Kết và Trang Proxy Shopee</div>
+    <center>
+        <b>
+            <a href="http://thienan48.site/l1/">RÚT GỌN LINK</a>------
+            <a href="http://thienan48.site/l2/">LINK GỐC</a>------
+            <a href="http://thienan48.site/lazada.html">LAZADA</a>------
+            <a href="http://thienan48.site/lg.html">LINK GỐC 2</a>------
+            <a href="http://thienan48.site/laz.html">DUYỆT TRANG</a>------
+            <a href="http://thienan48.site/l3/">LỌC LINK</a>
+        </b>
+    </center>
 
     <h1>Lọc và Thay Thế Liên Kết</h1>
 
     <div class="section link-section">
         <h2 class="section-header">Lọc và Thay Thế Liên Kết</h2>
         <textarea id="inputText" rows="6" placeholder="Nhập văn bản ở đây để lọc liên kết..."></textarea>
-        <button onclick="extractLinks()">Lọc Liên Kết</button>
-        <button onclick="clearInput('inputText')">Xóa Văn Bản</button>
+        <div class="button-container">
+            <button onclick="extractLinks()">Lọc Liên Kết</button>
+            <button onclick="clearInput('inputText')">Xóa Văn Bản</button>
+        </div>
 
         <h3>Các Liên Kết Đã Tìm Thấy:</h3>
         <div id="linkSections"></div>
 
         <h3>Văn Bản Đã Thay Đổi:</h3>
         <textarea id="outputText" rows="6" readonly></textarea>
-        <button id="copyResultButton" onclick="copyResult()" style="display: none;">Sao Chép Kết Quả</button>
-        <button onclick="clearInput('outputText')">Xóa Văn Bản</button>
+        <div class="button-container">
+            <button id="copyResultButton" onclick="copyResult()" style="display: none;">Sao Chép Kết Quả</button>
+            <button onclick="clearInput('outputText')">Xóa Văn Bản</button>
+        </div>
     </div>
 
-    <div class="notification">
-        Bạn đang duyệt trang Shopee mà không cần mở ứng dụng Shopee.
+    <div class="section remove-number-section">
+        <h2 class="section-header">Xóa Số và Dấu Chấm</h2>
+        <textarea id="removeTextInput" rows="4" placeholder="Nhập văn bản để xóa các số và dấu chấm..."></textarea>
+        <div class="button-container">
+            <button onclick="removeNumbers()">Xóa Số và Dấu Chấm</button>
+            <button onclick="clearInput('removeTextInput')">Xóa Văn Bản</button>
+        </div>
+        
+        <h3>Văn Bản Sau Khi Xóa:</h3>
+        <textarea id="removeTextOutput" rows="4" readonly></textarea>
+        <div class="button-container">
+            <button id="copyRemoveResultButton" onclick="copyRemoveResult()" style="display: none;">Sao Chép Kết Quả</button>
+            <button onclick="clearInput('removeTextOutput')">Xóa Văn Bản</button>
+        </div>
     </div>
 
-    <!-- Phần iframe sẽ hiển thị nội dung trang Shopee -->
-    <iframe src="/shopee" title="Shopee Content"></iframe>
+    <h2>Trang Proxy Shopee</h2>
+    <iframe src="https://affiliate.shopee.vn/offer/custom_link" title="Shopee Content"></iframe>
 
     <script>
         let links = [];
+        const colors = ['group-0', 'group-1', 'group-2', 'group-3', 'group-4'];
+
+        function clearInput(textareaId) {
+            document.getElementById(textareaId).value = '';
+        }
+
+        function removeNumbers() {
+            let text = document.getElementById('removeTextInput').value;
+            text = text.replace(/\d+\.\s*/g, '');
+            document.getElementById('removeTextOutput').value = text;
+            document.getElementById('copyRemoveResultButton').style.display = 'inline';
+            alert('Đã xóa các ký tự số và dấu chấm.');
+        }
 
         function extractLinks() {
             const text = document.getElementById('inputText').value;
@@ -106,6 +143,8 @@
             const linkSections = document.getElementById('linkSections');
             linkSections.innerHTML = '';
 
+            let colorIndex = 0;
+
             for (const [domain, domainLinks] of Object.entries(domainMap)) {
                 const section = document.createElement('div');
                 section.classList.add('domain-section');
@@ -114,14 +153,51 @@
                 title.textContent = `Tên miền: ${domain}`;
                 section.appendChild(title);
 
-                const list = document.createElement('ul');
-                domainLinks.forEach(link => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = link;
-                    list.appendChild(listItem);
-                });
+                for (let i = 0; i < domainLinks.length; i += 5) {
+                    const groupLinks = domainLinks.slice(i, i + 5);
+                    
+                    const groupSection = document.createElement('div');
+                    groupSection.classList.add('group-section', colors[colorIndex % colors.length]);
+                    colorIndex++;
 
-                section.appendChild(list);
+                    const list = document.createElement('ul');
+                    groupLinks.forEach(link => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = link;
+                        list.appendChild(listItem);
+                    });
+                    groupSection.appendChild(list);
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Sao Chép Các Liên Kết';
+                    copyButton.onclick = () => copyLinks(groupLinks, groupSection);
+                    groupSection.appendChild(copyButton);
+
+                    const replacementInput = document.createElement('textarea');
+                    replacementInput.rows = 3;
+                    replacementInput.placeholder = `Nhập ${groupLinks.length} liên kết thay thế, mỗi liên kết trên một dòng...`;
+                    groupSection.appendChild(replacementInput);
+
+                    const clearInputButton = document.createElement('button');
+                    clearInputButton.textContent = 'Xóa Văn Bản';
+                    clearInputButton.onclick = () => clearInputTextArea(replacementInput);
+                    groupSection.appendChild(clearInputButton);
+
+                    const clearNumbersButton = document.createElement('button');
+                    clearNumbersButton.textContent = 'Xóa Số và Ký Tự Liền Sau';
+                    clearNumbersButton.onclick = () => {
+                        replacementInput.value = replacementInput.value.replace(/^\d+\.\s*/gm, '');
+                    };
+                    groupSection.appendChild(clearNumbersButton);
+
+                    const replaceButton = document.createElement('button');
+                    replaceButton.textContent = 'Thay Thế Liên Kết';
+                    replaceButton.onclick = () => replaceLinks(groupLinks, replacementInput.value.trim(), groupSection);
+                    groupSection.appendChild(replaceButton);
+
+                    section.appendChild(groupSection);
+                }
+
                 linkSections.appendChild(section);
             }
 
@@ -130,8 +206,44 @@
             }
         }
 
-        function clearInput(textareaId) {
-            document.getElementById(textareaId).value = '';
+        function replaceLinks(groupLinks, replacements, groupSection) {
+            const replacementArray = replacements.split('\n').map(link => link.trim()).filter(link => link);
+            if (replacementArray.length !== groupLinks.length) {
+                alert(`Số lượng liên kết thay thế phải bằng số liên kết hiện tại (${groupLinks.length}).`);
+                return;
+            }
+
+            let text = document.getElementById('inputText').value;
+
+            groupLinks.forEach((link, index) => {
+                const regex = new RegExp(link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                text = text.replace(regex, replacementArray[index]);
+            });
+
+            document.getElementById('outputText').value = text;
+            document.getElementById('inputText').value = text;
+            document.getElementById('copyResultButton').style.display = 'inline';
+
+            groupSection.classList.remove('group-copied');
+            groupSection.classList.add('replaced-group');
+            alert('Đã thay thế các liên kết trong nhóm.');
+        }
+
+        function copyLinks(groupLinks, groupSection) {
+            const textArea = document.createElement('textarea');
+            textArea.value = groupLinks.join('\n');
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép các liên kết!');
+
+            groupSection.classList.remove('replaced-group');
+            groupSection.classList.add('group-copied');
+        }
+
+        function clearInputTextArea(textarea) {
+            textarea.value = '';
         }
 
         function copyResult() {
@@ -142,6 +254,286 @@
             document.execCommand('copy');
             document.body.removeChild(textArea);
             alert('Đã sao chép kết quả văn bản!');
+        }
+
+        function copyRemoveResult() {
+            const textArea = document.createElement('textarea');
+            textArea.value = document.getElementById('removeTextOutput').value;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép kết quả sau khi xóa số và dấu chấm!');
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lọc và Thay Thế Liên Kết Theo Tên Miền</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .section {
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        .section-header {
+            margin-bottom: 15px;
+        }
+        .link-section {
+            background-color: #f0f8ff;
+        }
+        .remove-number-section {
+            background-color: #f5f5dc;
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        .group-section {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        /* Màu nền cho các nhóm liên kết */
+        .group-0 { background-color: #d1e7dd; }
+        .group-1 { background-color: #f8d7da; }
+        .group-2 { background-color: #cff4fc; }
+        .group-3 { background-color: #e2e3e5; }
+        .group-4 { background-color: #fefefe; }
+        .replaced-group { background-color: #fefefe !important; }
+        .group-copied { background-color: #f8d7da !important; }
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+        iframe {
+            width: 100%;
+            height: 50vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <center>
+        <b>
+            <a href="http://thienan48.site/l1/">RÚT GỌN LINK</a>------
+            <a href="http://thienan48.site/l2/">LINK GỐC</a>------
+            <a href="http://thienan48.site/lazada.html">LAZADA</a>------
+            <a href="http://thienan48.site/lg.html">LINK GỐC 2</a>------
+            <a href="http://thienan48.site/laz.html">DUYỆT TRANG</a>------
+            <a href="http://thienan48.site/l3/">LỌC LINK</a>
+        </b>
+    </center>
+
+    <h1>Lọc và Thay Thế Liên Kết</h1>
+
+    <div class="section link-section">
+        <h2 class="section-header">Lọc và Thay Thế Liên Kết</h2>
+        <textarea id="inputText" rows="6" placeholder="Nhập văn bản ở đây để lọc liên kết..."></textarea>
+        <div class="button-container">
+            <button onclick="extractLinks()">Lọc Liên Kết</button>
+            <button onclick="clearInput('inputText')">Xóa Văn Bản</button>
+        </div>
+
+        <h3>Các Liên Kết Đã Tìm Thấy:</h3>
+        <div id="linkSections"></div>
+
+        <h3>Văn Bản Đã Thay Đổi:</h3>
+        <textarea id="outputText" rows="6" readonly></textarea>
+        <div class="button-container">
+            <button id="copyResultButton" onclick="copyResult()" style="display: none;">Sao Chép Kết Quả</button>
+            <button onclick="clearInput('outputText')">Xóa Văn Bản</button>
+        </div>
+    </div>
+
+    <div class="section remove-number-section">
+        <h2 class="section-header">Xóa Số và Dấu Chấm</h2>
+        <textarea id="removeTextInput" rows="4" placeholder="Nhập văn bản để xóa các số và dấu chấm..."></textarea>
+        <div class="button-container">
+            <button onclick="removeNumbers()">Xóa Số và Dấu Chấm</button>
+            <button onclick="clearInput('removeTextInput')">Xóa Văn Bản</button>
+        </div>
+        
+        <h3>Văn Bản Sau Khi Xóa:</h3>
+        <textarea id="removeTextOutput" rows="4" readonly></textarea>
+        <div class="button-container">
+            <button id="copyRemoveResultButton" onclick="copyRemoveResult()" style="display: none;">Sao Chép Kết Quả</button>
+            <button onclick="clearInput('removeTextOutput')">Xóa Văn Bản</button>
+        </div>
+    </div>
+
+    <h2>Trang Proxy Shopee</h2>
+    <iframe src="https://affiliate.shopee.vn/offer/custom_link" title="Shopee Content"></iframe>
+
+    <script>
+        let links = [];
+        const colors = ['group-0', 'group-1', 'group-2', 'group-3', 'group-4'];
+
+        function clearInput(textareaId) {
+            document.getElementById(textareaId).value = '';
+        }
+
+        function removeNumbers() {
+            let text = document.getElementById('removeTextInput').value;
+            text = text.replace(/\d+\.\s*/g, '');
+            document.getElementById('removeTextOutput').value = text;
+            document.getElementById('copyRemoveResultButton').style.display = 'inline';
+            alert('Đã xóa các ký tự số và dấu chấm.');
+        }
+
+        function extractLinks() {
+            const text = document.getElementById('inputText').value;
+            const linkPattern = /https?:\/\/[^\s]+/g;
+            links = text.match(linkPattern) || [];
+            const domainMap = {};
+
+            links.forEach(link => {
+                const domain = new URL(link).hostname;
+                if (!domainMap[domain]) {
+                    domainMap[domain] = [];
+                }
+                domainMap[domain].push(link);
+            });
+
+            displayLinks(domainMap);
+        }
+
+        function displayLinks(domainMap) {
+            const linkSections = document.getElementById('linkSections');
+            linkSections.innerHTML = '';
+
+            let colorIndex = 0;
+
+            for (const [domain, domainLinks] of Object.entries(domainMap)) {
+                const section = document.createElement('div');
+                section.classList.add('domain-section');
+
+                const title = document.createElement('h3');
+                title.textContent = `Tên miền: ${domain}`;
+                section.appendChild(title);
+
+                for (let i = 0; i < domainLinks.length; i += 5) {
+                    const groupLinks = domainLinks.slice(i, i + 5);
+                    
+                    const groupSection = document.createElement('div');
+                    groupSection.classList.add('group-section', colors[colorIndex % colors.length]);
+                    colorIndex++;
+
+                    const list = document.createElement('ul');
+                    groupLinks.forEach(link => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = link;
+                        list.appendChild(listItem);
+                    });
+                    groupSection.appendChild(list);
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Sao Chép Các Liên Kết';
+                    copyButton.onclick = () => copyLinks(groupLinks, groupSection);
+                    groupSection.appendChild(copyButton);
+
+                    const replacementInput = document.createElement('textarea');
+                    replacementInput.rows = 3;
+                    replacementInput.placeholder = `Nhập ${groupLinks.length} liên kết thay thế, mỗi liên kết trên một dòng...`;
+                    groupSection.appendChild(replacementInput);
+
+                    const clearInputButton = document.createElement('button');
+                    clearInputButton.textContent = 'Xóa Văn Bản';
+                    clearInputButton.onclick = () => clearInputTextArea(replacementInput);
+                    groupSection.appendChild(clearInputButton);
+
+                    const clearNumbersButton = document.createElement('button');
+                    clearNumbersButton.textContent = 'Xóa Số và Ký Tự Liền Sau';
+                    clearNumbersButton.onclick = () => {
+                        replacementInput.value = replacementInput.value.replace(/^\d+\.\s*/gm, '');
+                    };
+                    groupSection.appendChild(clearNumbersButton);
+
+                    const replaceButton = document.createElement('button');
+                    replaceButton.textContent = 'Thay Thế Liên Kết';
+                    replaceButton.onclick = () => replaceLinks(groupLinks, replacementInput.value.trim(), groupSection);
+                    groupSection.appendChild(replaceButton);
+
+                    section.appendChild(groupSection);
+                }
+
+                linkSections.appendChild(section);
+            }
+
+            if (Object.keys(domainMap).length === 0) {
+                linkSections.innerHTML = '<p>Không tìm thấy liên kết nào.</p>';
+            }
+        }
+
+        function replaceLinks(groupLinks, replacements, groupSection) {
+            const replacementArray = replacements.split('\n').map(link => link.trim()).filter(link => link);
+            if (replacementArray.length !== groupLinks.length) {
+                alert(`Số lượng liên kết thay thế phải bằng số liên kết hiện tại (${groupLinks.length}).`);
+                return;
+            }
+
+            let text = document.getElementById('inputText').value;
+
+            groupLinks.forEach((link, index) => {
+                const regex = new RegExp(link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                text = text.replace(regex, replacementArray[index]);
+            });
+
+            document.getElementById('outputText').value = text;
+            document.getElementById('inputText').value = text;
+            document.getElementById('copyResultButton').style.display = 'inline';
+
+            groupSection.classList.remove('group-copied');
+            groupSection.classList.add('replaced-group');
+            alert('Đã thay thế các liên kết trong nhóm.');
+        }
+
+        function copyLinks(groupLinks, groupSection) {
+            const textArea = document.createElement('textarea');
+            textArea.value = groupLinks.join('\n');
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép các liên kết!');
+
+            groupSection.classList.remove('replaced-group');
+            groupSection.classList.add('group-copied');
+        }
+
+        function clearInputTextArea(textarea) {
+            textarea.value = '';
+        }
+
+        function copyResult() {
+            const textArea = document.createElement('textarea');
+            textArea.value = document.getElementById('outputText').value;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép kết quả văn bản!');
+        }
+
+        function copyRemoveResult() {
+            const textArea = document.createElement('textarea');
+            textArea.value = document.getElementById('removeTextOutput').value;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Đã sao chép kết quả sau khi xóa số và dấu chấm!');
         }
     </script>
 </body>
