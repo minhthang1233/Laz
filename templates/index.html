@@ -3,23 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Resolver</title>
+    <title>Trang proxy Shopee</title>
 </head>
 <body>
-    <h1>Resolve Shortened URL</h1>
-    <form action="/resolve_url" method="POST">
-        <label for="short_url">Enter Shortened URL:</label>
-        <input type="text" name="short_url" id="short_url" required>
-        <button type="submit">Resolve</button>
+    <h1>Trang proxy Shopee</h1>
+    <form action="/shopee" method="GET">
+        <label>Nhập link Shopee: </label>
+        <input type="text" name="url" placeholder="https://s.shopee.vn/yourlink" required />
+        <button type="submit">Tải trang</button>
     </form>
-
-    {% if original_url %}
-    <h2>Original URL:</h2>
-    <p><a href="{{ original_url }}">{{ original_url }}</a></p>
-    {% endif %}
-
-    {% if original_url == "URL not found" %}
-    <h2 style="color: red;">URL not found</h2>
-    {% endif %}
 </body>
 </html>
