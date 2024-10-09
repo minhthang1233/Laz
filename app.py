@@ -1,70 +1,59 @@
-from flask import Flask, render_template, request, redirect, url_for
+import logging
+from flask import Flask, request, render_template, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 import re
-import random
-import string
-import sqlite3
 import os
+import uuid
 
 app = Flask(__name__)
 
-# Hàm kết nối đến cơ sở dữ liệu
-def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+# Cấu hình logging
+logging.basicConfig(level=logging.DEBUG)
 
-# Tạo bảng nếu chưa có
-def create_table():
-    conn = get_db_connection()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS pages (
-            id TEXT PRIMARY KEY,
-            content TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# Cấu hình cơ sở dữ liệu
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///results.db'  # Đối với SQLite
+# Hoặc sử dụng PostgreSQL
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@host:port/database_name'
+db = SQLAlchemy(app)
 
-# Hàm tạo ID ngẫu nhiên
-def generate_random_id(length=6):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+# Mô hình kết quả
+class Result(db.Model):
+    id = db.Column(db.String(36), primary_key=True)
+    converted_text = db.Column(db.Text, nullable=False)
 
-# Hàm để thay thế các liên kết và ký tự xuống dòng bằng thẻ HTML
-def convert_links(text):
-    # Thay thế link thành thẻ <a>
-    url_pattern = r"(https?://[^\s]+)"
-    text_with_links = re.sub(url_pattern, r'<a href="\1">\1</a>', text)
-    
-    # Thay thế ký tự xuống dòng (\n) bằng thẻ <br>
-    return text_with_links.replace('\n', '<br>')
+db.create_all()
+
+def extract_and_convert_links(text):
+    link_pattern = r'(https?://[^\s]+)'
+    converted_text = re.sub(link_pattern, r'<a href="\g<0>" target="_blank">\g<0></a>', text)
+    return converted_text
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        content = request.form['content']
-        random_id = generate_random_id()
-        content_with_links = convert_links(content)
+        original_text = request.form['text']
+        converted_text = extract_and_convert_links(original_text)
         
-        # Lưu vào database
-        conn = get_db_connection()
-        conn.execute('INSERT INTO pages (id, content) VALUES (?, ?)', (random_id, content_with_links))
-        conn.commit()
-        conn.close()
+        # Tạo một ID duy nhất cho kết quả
+        result_id = str(uuid.uuid4())
+        new_result = Result(id=result_id, converted_text=converted_text)
+        db.session.add(new_result)
+        db.session.commit()
         
-        return redirect(url_for('view_page', page_id=random_id))
+        # Tạo liên kết có thể chia sẻ
+        share_link = url_for('result', result_id=result_id, _external=True)
+        return render_template('result.html', converted_text=converted_text, share_link=share_link)
+
     return render_template('index.html')
 
-@app.route('/<page_id>')
-def view_page(page_id):
-    conn = get_db_connection()
-    page = conn.execute('SELECT * FROM pages WHERE id = ?', (page_id,)).fetchone()
-    conn.close()
+@app.route('/result/<result_id>', methods=['GET'])
+def result(result_id):
+    result = Result.query.get(result_id)
+    if result is None:
+        return "Kết quả không tìm thấy", 404
     
-    if page is None:
-        return 'Page not found', 404
-    return render_template('page.html', content=page['content'])
+    return render_template('result.html', converted_text=result.converted_text)
 
-if __name__ == '__main__':
-    create_table()
-    port = int(os.environ.get('PORT', 5000))
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
