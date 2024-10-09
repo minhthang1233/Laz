@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, render_template_string
+from flask import Flask, render_template, request
 import requests
 
 app = Flask(__name__)
@@ -17,7 +17,7 @@ def load_shopee():
             }
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                return render_template_string(response.text)
+                return render_template('index.html', content=response.text)
             else:
                 return f"Lỗi khi tải trang: {response.status_code}"
         except Exception as e:
