@@ -1,27 +1,37 @@
-from flask import Flask, request, render_template, redirect
-import requests
+from flask import Flask, render_template, request, redirect, url_for
+import re
+import random
+import string
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
+# Bộ lưu trữ nội dung của các trang ngẫu nhiên
+pages = {}
+
+# Hàm tạo ID ngẫu nhiên
+def generate_random_id(length=6):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+# Hàm để thay thế các liên kết bằng thẻ HTML anchor
+def convert_links(text):
+    url_pattern = r"(https?://[^\s]+)"
+    return re.sub(url_pattern, r'<a href="\1">\1</a>', text)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        content = request.form['content']
+        random_id = generate_random_id()
+        # Chuyển đổi các link thành thẻ a
+        content_with_links = convert_links(content)
+        pages[random_id] = content_with_links
+        return redirect(url_for('view_page', page_id=random_id))
     return render_template('index.html')
 
-@app.route('/shopee', methods=['GET'])
-def shopee():
-    # URL cần duyệt mặc định là link affiliate của Shopee
-    url = 'https://affiliate.shopee.vn/offer/custom_link'
+@app.route('/<page_id>')
+def view_page(page_id):
+    content = pages.get(page_id, 'Page not found')
+    return render_template('page.html', content=content)
 
-    try:
-        # Thực hiện request GET tới URL
-        response = requests.get(url)
-        # Kiểm tra response
-        if response.status_code == 200:
-            return response.text
-        else:
-            return f"Không thể tải trang, mã lỗi: {response.status_code}"
-    except Exception as e:
-        return f"Lỗi: {str(e)}"
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
