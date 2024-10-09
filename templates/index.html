@@ -79,17 +79,8 @@
         Bạn đang duyệt trang Shopee mà không cần mở ứng dụng Shopee.
     </div>
 
-    <form action="/shopee" method="GET" style="text-align: center; margin-bottom: 20px;">
-        <label>Nhập link Shopee: </label>
-        <input type="text" name="url" placeholder="https://s.shopee.vn/yourlink" required />
-        <button type="submit">Tải trang</button>
-    </form>
-
-    {% if content %}
-        <div class="iframe-container">
-            {{ content|safe }}
-        </div>
-    {% endif %}
+    <!-- Phần iframe sẽ hiển thị nội dung trang Shopee -->
+    <iframe src="/shopee" title="Shopee Content"></iframe>
 
     <script>
         let links = [];
