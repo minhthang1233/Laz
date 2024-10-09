@@ -2,12 +2,28 @@ from flask import Flask, render_template, request, redirect, url_for
 import re
 import random
 import string
+import sqlite3
 import os
 
 app = Flask(__name__)
 
-# Bộ lưu trữ nội dung của các trang ngẫu nhiên
-pages = {}
+# Hàm kết nối đến cơ sở dữ liệu
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Tạo bảng nếu chưa có
+def create_table():
+    conn = get_db_connection()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pages (
+            id TEXT PRIMARY KEY,
+            content TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
 # Hàm tạo ID ngẫu nhiên
 def generate_random_id(length=6):
@@ -27,17 +43,28 @@ def index():
     if request.method == 'POST':
         content = request.form['content']
         random_id = generate_random_id()
-        # Chuyển đổi các link và xuống dòng
         content_with_links = convert_links(content)
-        pages[random_id] = content_with_links
+        
+        # Lưu vào database
+        conn = get_db_connection()
+        conn.execute('INSERT INTO pages (id, content) VALUES (?, ?)', (random_id, content_with_links))
+        conn.commit()
+        conn.close()
+        
         return redirect(url_for('view_page', page_id=random_id))
     return render_template('index.html')
 
 @app.route('/<page_id>')
 def view_page(page_id):
-    content = pages.get(page_id, 'Page not found')
-    return render_template('page.html', content=content)
+    conn = get_db_connection()
+    page = conn.execute('SELECT * FROM pages WHERE id = ?', (page_id,)).fetchone()
+    conn.close()
+    
+    if page is None:
+        return 'Page not found', 404
+    return render_template('page.html', content=page['content'])
 
 if __name__ == '__main__':
+    create_table()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
